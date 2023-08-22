@@ -1,7 +1,7 @@
 package t092500
 
 import (
-	"github.com/2997215859/GoMDSDK/timescale"
+	"github.com/2997215859/gomdsdk/timescale"
 )
 
 var Minute1 = []string{

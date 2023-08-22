@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/2997215859/GoMDSDK/datatype"
+	"github.com/2997215859/gomdsdk/datatype"
+	"github.com/2997215859/gomdsdk/timescale"
+	"github.com/2997215859/gomdsdk/timgr"
 	kafkago "github.com/segmentio/kafka-go"
 )
 
@@ -37,6 +39,8 @@ type Consumer struct {
 
 	ChanSize int64
 	stopChan chan struct{}
+
+	SnapshotTiMgr *timgr.TiMgr
 }
 
 func NewConsumer(topic string, brokers []string, opts ...Option) *Consumer {
@@ -175,6 +179,10 @@ func (c *Consumer) Handle() {
 							break
 						}
 						c.SnapshotCallback(snapshot, meta)
+
+						if c.SnapshotTiMgr != nil {
+							c.SnapshotTiMgr.Update(timescale.IntTime2Time(snapshot.Time))
+						}
 					}
 				case <-c.stopChan:
 					return

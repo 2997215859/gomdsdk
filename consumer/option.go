@@ -1,5 +1,7 @@
 package consumer
 
+import "github.com/2997215859/gomdsdk/timgr"
+
 type Option func(consumer *Consumer)
 
 func WithOffset(offset int64) Option {
@@ -40,5 +42,11 @@ func WithTransactionCallback(cb TransactionCallback) Option {
 func WithChanSize(chanSize int64) Option {
 	return func(consumer *Consumer) {
 		consumer.ChanSize = chanSize
+	}
+}
+
+func WithSnapshotTiMgr(tiMgr *timgr.TiMgr) Option {
+	return func(consumer *Consumer) {
+		consumer.SnapshotTiMgr = tiMgr
 	}
 }

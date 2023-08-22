@@ -1,4 +1,4 @@
-module github.com/2997215859/GoMDSDK
+module github.com/2997215859/gomdsdk
 
 go 1.21.0
 
