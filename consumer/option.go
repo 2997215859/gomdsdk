@@ -50,3 +50,10 @@ func WithSnapshotTiMgr(tiMgr *timgr.TiMgr) Option {
 		consumer.SnapshotTiMgr = tiMgr
 	}
 }
+
+func WithAuth(username, password string) Option {
+	return func(consumer *Consumer) {
+		consumer.Username = username
+		consumer.Password = password
+	}
+}

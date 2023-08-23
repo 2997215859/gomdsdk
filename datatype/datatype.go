@@ -51,69 +51,69 @@ type Meta struct {
 }
 
 /*
-{"type":1,"stock_id":"600987.SH","trading_day":20230822,"time":144644000,"status":"O","prevclose":7.7,"open":7.74,"high":7.8,"low":7.49,"match":7.59,"ask_prices":[7.59,7.6,7.61,7.62,7.63,7.64,7.65,7.66,7.67,7.68],"ask_volumes":[0.2225,2.37,1.98,2.04,0.91,0.92,0.62,1.6,1.27,1.24],"bid_prices":[7.58,7.57,7.56,7.55,7.54,7.53,7.52,7.51,7.5,7.49],"bid_volumes":[1.94,1.3,1.9,0.55,0.39,0.49,1.1,0.4,1.28,0.41],"trades_num":11141,"volume":5154205,"turnover":39160791,"total_ask_volume":1050841,"total_bid_volume":347300,"weighted_avg_ask_price":7.97,"weighted_avg_bid_price":7.268,"iopv":0,"high_limited":8.47,"low_limited":6.93}
+{"type":1,"data":{"stock_id":"000001.SZ","trading_day":20230823,"time":92018000,"status":"I","prevclose":11.37,"open":0.0,"high":0.0,"low":0.0,"match":0.0,"ask_prices":[11.37,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"ask_volumes":[9.79,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"bid_prices":[11.37,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"bid_volumes":[9.79,0.9,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"trades_num":0,"volume":0,"turnover":0,"total_ask_volume":0,"total_bid_volume":0,"weighted_avg_ask_price":0.0,"weighted_avg_bid_price":0.0,"iopv":0,"high_limited":12.51,"low_limited":10.23}}
 */
 type Snapshot struct {
-	StockID    string    // Code: 000001.SZ, 000001.SH
-	TradingDay int       // 交易日
-	Time       int       // 时间(HHMMSSmmm)
-	Status     byte      // 状态
-	Prevclose  float64   // 前收盘价
-	Open       float64   // 开盘价
-	High       float64   // 最高价
-	Low        float64   // 最低价
-	Match      float64   // 最新价
-	AskPrices  []float64 // 申卖价
-	AskVolumes []float64 // 申卖量
-	BidPrices  []float64 // 申买价
-	BidVolumes []float64 // 申买量
+	StockID    string    `json:"stock_id"`    // Code: 000001.SZ, 000001.SH
+	TradingDay int       `json:"trading_day"` // 交易日
+	Time       int       `json:"time"`        // 时间(HHMMSSmmm)
+	Status     string    `json:"status"`      // 状态
+	PrevClose  float64   `json:"prevclose"`   // 前收盘价
+	Open       float64   `json:"open"`        // 开盘价
+	High       float64   `json:"high"`        // 最高价
+	Low        float64   `json:"low"`         // 最低价
+	Match      float64   `json:"match"`       // 最新价
+	AskPrices  []float64 `json:"ask_prices"`  // 申卖价
+	AskVolumes []float64 `json:"ask_volumes"` // 申卖量
+	BidPrices  []float64 `json:"bid_prices"`  // 申买价
+	BidVolumes []float64 `json:"bid_volumes"` // 申买量
 
-	TradesNum           int     // 成交笔数
-	Volume              int64   // 成交总量
-	Turnover            int64   // 成交总金额
-	TotalAskVolume      int64   // 委托卖出总量
-	TotalBidVolume      int64   // 委托买入总量
-	WeightedAvgAskPrice float64 // 加权平均委卖价格
-	WeightedAvgBidPrice float64 // 加权平均委买价格
+	TradesNum           int     `json:"trading_num"`            // 成交笔数
+	Volume              int64   `json:"volume"`                 // 成交总量
+	Turnover            int64   `json:"turnover"`               // 成交总金额
+	TotalAskVolume      int64   `json:"total_ask_volume"`       // 委托卖出总量
+	TotalBidVolume      int64   `json:"total_bid_volume"`       // 委托买入总量
+	WeightedAvgAskPrice float64 `json:"weighted_avg_ask_price"` // 加权平均委卖价格
+	WeightedAvgBidPrice float64 `json:"weighted_avg_bid_price"` // 加权平均委买价格
 
-	IOPV        int     //IOPV净值估值
-	HighLimited float64 // 涨停价
-	LowLimited  float64 // 跌停价
+	IOPV        int     `json:"iopv"`         //IOPV净值估值
+	HighLimited float64 `json:"high_limited"` // 涨停价
+	LowLimited  float64 `json:"low_limited"`  // 跌停价
 }
 
 /*
-{"type":2,"stock_id":"600348.SH","action_day":20230822,"time":144739440,"order":11965751,"price":7.5,"volume":7000.0,"order_kind":"D","function_code":"S","channel":1,"order_ori_no":11103808,"biz_index":18079243}
+order: {"type":2,"data":{"stock_id":"001324.SZ","action_day":20230823,"time":92048490,"order":243233,"price":33.3,"volume":200.0,"order_kind":"0","function_code":"B","channel":2013,"order_ori_no":0,"biz_index":0}
 */
 type Order struct {
-	StockID      string  // Code: 000001.SZ, 000001.SH
-	ActionDay    int     // 委托日期(YYMMDD)
-	Time         int     // 委托时间(HHMMSSmmm)
-	Order        int     // 委托号
-	Price        float64 // 委托价格
-	Volume       float64 // 委托数量
-	OrderKind    byte    // 委托类别
-	FunctionCode byte    // 委托代码('B','S','C')
-	Channel      int     // channel id
-	OrderOriNo   int64   // 原始订单号
-	BizIndex     int64   // 业务编号
+	StockID      string  `json:"stock_id"`      // Code: 000001.SZ, 000001.SH
+	ActionDay    int     `json:"action_day"`    // 委托日期(YYMMDD)
+	Time         int     `json:"time"`          // 委托时间(HHMMSSmmm)
+	Order        int     `json:"order"`         // 委托号
+	Price        float64 `json:"price"`         // 委托价格
+	Volume       float64 `json:"volume"`        // 委托数量
+	OrderKind    string  `json:"order_kind"`    // 委托类别
+	FunctionCode string  `json:"function_code"` // 委托代码('B','S','C')
+	Channel      int     `json:"channel"`       // channel id
+	OrderOriNo   int64   `json:"order_ori_no"`  // 原始订单号
+	BizIndex     int64   `json:"biz_index"`     // 业务编号
 }
 
 /*
-{"type":3,"stock_id":"603196.SH","action_day":20230822,"time":144801100,"index":6539906,"price":180300.0,"volume":100,"turnover":1803,"bsflag":"S","order_kind":" ","function_code":" ","ask_order":11924388,"bid_order":11923476,"channel":5,"biz_index":19366772}
+{"type":3,"data":{"stock_id":"002672.SZ","action_day":20230823,"time":93331810,"index":2535299,"price":0.0,"volume":11700,"turnover":0,"bsflag":" ","order_kind":"0","function_code":"C","ask_order":0,"bid_order":2096531,"channel":2014,"biz_index":0}}
 */
 type Transaction struct {
-	StockID      string  // Code: 000001.SZ, 000001.SH
-	ActionDay    int     // 自然日(YYMMDD)
-	Time         int     // 委托时间(HHMMSSmmm)
-	Index        int     // 成交编号
-	Price        float64 // 成交价格
-	Volume       int     // 成交数量
-	Turnover     int64   // 成交金额
-	Bsflag       byte    // 买卖方向(买：'B', 卖：'S', 不明：' ')
-	OrderKind    byte    // 成交类别
-	FunctionCode byte    // 成交代码
-	AskOrder     int     // 叫卖方委托序号
-	BidOrder     int     // 叫买方委托序号
-	Channel      int     // channel id
-	BizIndex     int64   // 业务编号
+	StockID      string  `json:"stock_id"`      // Code: 000001.SZ, 000001.SH
+	ActionDay    int     `json:"action_day"`    // 自然日(YYMMDD)
+	Time         int     `json:"time"`          // 委托时间(HHMMSSmmm)
+	Index        int     `json:"index"`         // 成交编号
+	Price        float64 `json:"price"`         // 成交价格
+	Volume       int     `json:"volume"`        // 成交数量
+	Turnover     int64   `json:"turnover"`      // 成交金额
+	Bsflag       string  `json:"bsflag"`        // 买卖方向(买：'B', 卖：'S', 不明：' ')
+	OrderKind    string  `json:"order_kind"`    // 成交类别
+	FunctionCode string  `json:"function_code"` // 成交代码
+	AskOrder     int     `json:"ask_order"`     // 叫卖方委托序号
+	BidOrder     int     `json:"bid_order"`     // 叫买方委托序号
+	Channel      int     `json:"channel"`       // channel id
+	BizIndex     int64   `json:"biz_index"`     // 业务编号
 }

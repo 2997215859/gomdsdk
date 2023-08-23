@@ -31,7 +31,7 @@ func Callback(md *datatype.MD, meta *datatype.Meta) {
 		}
 		snapshotCnt++
 	case datatype.TypeOrder:
-		if orderCnt%10000 == 0 {
+		if orderCnt%100000 == 0 {
 			order := md.Data.(*datatype.Order)
 			b, err := json.Marshal(order)
 			if err != nil {
@@ -42,7 +42,7 @@ func Callback(md *datatype.MD, meta *datatype.Meta) {
 		}
 		orderCnt++
 	case datatype.TypeTransaction:
-		if transCnt%10000 == 0 {
+		if transCnt%100000 == 0 {
 			transaction := md.Data.(*datatype.Transaction)
 			b, err := json.Marshal(transaction)
 			if err != nil {
@@ -59,11 +59,12 @@ func TestKafka(t *testing.T) {
 	tiMgr := timgr.NewTiMgr(timgr.WithTiSeqCallback(TiCallback))
 
 	consumer := NewConsumer(
-		"md",
+		"snapshot",
 		[]string{"183.134.59.154:9092"},
-		WithOffset(0),
+		// WithOffset(0),
 		WithMDCallback(Callback),
 		WithSnapshotTiMgr(tiMgr),
+		WithAuth("md_consumer", "Dev123456"),
 	)
 
 	if err := consumer.Run(); err != nil {

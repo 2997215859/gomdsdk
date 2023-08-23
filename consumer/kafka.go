@@ -4,11 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/2997215859/gomdsdk/datatype"
 	"github.com/2997215859/gomdsdk/timescale"
 	"github.com/2997215859/gomdsdk/timgr"
+	"github.com/segmentio/kafka-go"
 	kafkago "github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/sasl/scram"
 )
 
 const DefaultChanSize = 10000000
@@ -41,6 +44,9 @@ type Consumer struct {
 	stopChan chan struct{}
 
 	SnapshotTiMgr *timgr.TiMgr
+
+	Username string
+	Password string
 }
 
 func NewConsumer(topic string, brokers []string, opts ...Option) *Consumer {
@@ -57,11 +63,23 @@ func NewConsumer(topic string, brokers []string, opts ...Option) *Consumer {
 		o(consumer)
 	}
 
+	mechanism, err := scram.Mechanism(scram.SHA256, consumer.Username, consumer.Password)
+	if err != nil {
+		panic(err)
+	}
+
+	dialer := &kafka.Dialer{
+		Timeout:       10 * time.Second,
+		DualStack:     true,
+		SASLMechanism: mechanism,
+	}
+
 	consumer.reader = kafkago.NewReader(kafkago.ReaderConfig{
 		Brokers:   consumer.Brokers,
 		Topic:     consumer.Topic,
 		Partition: consumer.Partition,
 		MaxBytes:  consumer.MaxBytes,
+		Dialer:    dialer,
 	})
 	consumer.reader.SetOffset(consumer.Offset)
 	return consumer
@@ -172,14 +190,17 @@ func (c *Consumer) Handle() {
 			for {
 				select {
 				case m := <-c.snapshotChan:
-					if c.SnapshotCallback != nil {
+					if c.SnapshotCallback != nil || c.SnapshotTiMgr != nil {
 						_, snapshot, meta, err := c.ParseSnapshot(m)
 						if err != nil {
 							fmt.Printf("c.ParseSnapshot error: %s\n", err)
 							break
 						}
-						c.SnapshotCallback(snapshot, meta)
 
+						if c.SnapshotCallback != nil {
+							c.SnapshotCallback(snapshot, meta)
+						}
+						fmt.Print(snapshot.Time)
 						if c.SnapshotTiMgr != nil {
 							c.SnapshotTiMgr.Update(timescale.IntTime2Time(snapshot.Time))
 						}
