@@ -43,7 +43,9 @@ type Consumer struct {
 	ChanSize int64
 	stopChan chan struct{}
 
-	SnapshotTiMgr *timgr.TiMgr
+	SnapshotTiMgr    *timgr.TiMgr
+	OrderTiMgr       *timgr.TiMgr
+	TransactionTiMgr *timgr.TiMgr
 
 	Username string
 	Password string
@@ -184,26 +186,25 @@ func (c *Consumer) ParseMD(m *kafkago.Message) (*datatype.MD, *datatype.Meta, er
 }
 
 func (c *Consumer) Handle() {
-	if c.SnapshotCallback != nil {
+	if c.SnapshotCallback != nil || c.SnapshotTiMgr != nil {
 		c.snapshotChan = make(chan *kafkago.Message, c.ChanSize)
+
 		go func() {
 			for {
 				select {
 				case m := <-c.snapshotChan:
-					if c.SnapshotCallback != nil || c.SnapshotTiMgr != nil {
-						_, snapshot, meta, err := c.ParseSnapshot(m)
-						if err != nil {
-							fmt.Printf("c.ParseSnapshot error: %s\n", err)
-							break
-						}
+					_, snapshot, meta, err := c.ParseSnapshot(m)
+					if err != nil {
+						fmt.Printf("c.ParseSnapshot error: %s\n", err)
+						break
+					}
 
-						if c.SnapshotCallback != nil {
-							c.SnapshotCallback(snapshot, meta)
-						}
-						fmt.Print(snapshot.Time)
-						if c.SnapshotTiMgr != nil {
-							c.SnapshotTiMgr.Update(timescale.IntTime2Time(snapshot.Time))
-						}
+					if c.SnapshotCallback != nil {
+						c.SnapshotCallback(snapshot, meta)
+					}
+
+					if c.SnapshotTiMgr != nil {
+						c.SnapshotTiMgr.Update(timescale.IntTime2Time(snapshot.Time))
 					}
 				case <-c.stopChan:
 					return
@@ -211,19 +212,22 @@ func (c *Consumer) Handle() {
 			}
 		}()
 	}
-	if c.OrderCallback != nil {
+	if c.OrderCallback != nil || c.OrderTiMgr != nil {
 		c.orderChan = make(chan *kafkago.Message, c.ChanSize)
 		go func() {
 			for {
 				select {
 				case m := <-c.orderChan:
+					_, order, meta, err := c.ParseOrder(m)
+					if err != nil {
+						fmt.Printf("c.ParseOrder error: %s\n", err)
+						break
+					}
 					if c.OrderCallback != nil {
-						_, order, meta, err := c.ParseOrder(m)
-						if err != nil {
-							fmt.Printf("c.ParseOrder error: %s\n", err)
-							break
-						}
 						c.OrderCallback(order, meta)
+					}
+					if c.OrderTiMgr != nil {
+						c.OrderTiMgr.Update(timescale.IntTime2Time(order.Time))
 					}
 				case <-c.stopChan:
 					return
@@ -231,19 +235,22 @@ func (c *Consumer) Handle() {
 			}
 		}()
 	}
-	if c.TransactionCallback != nil {
+	if c.TransactionCallback != nil || c.TransactionTiMgr != nil {
 		c.transactionChan = make(chan *kafkago.Message, c.ChanSize)
 		go func() {
 			for {
 				select {
 				case m := <-c.transactionChan:
+					_, transaction, meta, err := c.ParseTransaction(m)
+					if err != nil {
+						fmt.Printf("c.ParseTransaction error: %s\n", err)
+						break
+					}
 					if c.TransactionCallback != nil {
-						_, transaction, meta, err := c.ParseTransaction(m)
-						if err != nil {
-							fmt.Printf("c.ParseTransaction error: %s\n", err)
-							break
-						}
 						c.TransactionCallback(transaction, meta)
+					}
+					if c.TransactionTiMgr != nil {
+						c.TransactionTiMgr.Update(timescale.IntTime2Time(transaction.Time))
 					}
 				case <-c.stopChan:
 					return
@@ -287,15 +294,15 @@ func (c *Consumer) ReadMessage(ctx context.Context) error {
 
 	switch key {
 	case datatype.KeySnapshot:
-		if c.SnapshotCallback != nil && c.snapshotChan != nil {
+		if c.SnapshotCallback != nil || c.snapshotChan != nil {
 			c.snapshotChan <- &m
 		}
 	case datatype.KeyOrder:
-		if c.OrderCallback != nil && c.orderChan != nil {
-			c.snapshotChan <- &m
+		if c.OrderCallback != nil || c.orderChan != nil {
+			c.orderChan <- &m
 		}
 	case datatype.KeyTransaction:
-		if c.TransactionCallback != nil && c.transactionChan != nil {
+		if c.TransactionCallback != nil || c.transactionChan != nil {
 			c.transactionChan <- &m
 		}
 	default:

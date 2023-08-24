@@ -59,9 +59,9 @@ func TestKafka(t *testing.T) {
 	tiMgr := timgr.NewTiMgr(timgr.WithTiSeqCallback(TiCallback))
 
 	consumer := NewConsumer(
-		"snapshot",
+		"md",
 		[]string{"183.134.59.154:9092"},
-		// WithOffset(0),
+		WithOffset(0),
 		WithMDCallback(Callback),
 		WithSnapshotTiMgr(tiMgr),
 		WithAuth("md_consumer", "Dev123456"),
