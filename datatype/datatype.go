@@ -48,6 +48,7 @@ type MD struct {
 type Meta struct {
 	Key    string
 	Offset int64
+	MDTime int
 }
 
 /*

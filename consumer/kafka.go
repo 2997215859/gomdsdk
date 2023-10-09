@@ -46,6 +46,7 @@ type Consumer struct {
 	SnapshotTiMgr    *timgr.TiMgr
 	OrderTiMgr       *timgr.TiMgr
 	TransactionTiMgr *timgr.TiMgr
+	MDTiMgr          *timgr.TiMgr
 
 	Username string
 	Password string
@@ -101,6 +102,7 @@ func (c *Consumer) ParseSnapshot(m *kafkago.Message) (*datatype.MD, *datatype.Sn
 	if err := json.Unmarshal(m.Value, &md); err != nil {
 		return md, nil, meta, fmt.Errorf("snapshot json.Unmarshal(%+v) error: %s", snapshot, err)
 	}
+	meta.MDTime = snapshot.Time
 
 	if md.Type != datatype.TypeSnapshot {
 		return md, nil, meta, fmt.Errorf("data.type != datatype.TypeSnapshot")
@@ -123,6 +125,7 @@ func (c *Consumer) ParseOrder(m *kafkago.Message) (*datatype.MD, *datatype.Order
 	if err := json.Unmarshal(m.Value, &md); err != nil {
 		return md, nil, meta, fmt.Errorf("order json.Unmarshal(%+v) error: %s", order, err)
 	}
+	meta.MDTime = order.Time
 
 	if md.Type != datatype.TypeOrder {
 		return md, nil, meta, fmt.Errorf("data.type != datatype.TypeOrder")
@@ -142,9 +145,11 @@ func (c *Consumer) ParseTransaction(m *kafkago.Message) (*datatype.MD, *datatype
 		Type: datatype.TypeUnknown,
 		Data: transaction,
 	}
+
 	if err := json.Unmarshal(m.Value, &md); err != nil {
 		return md, nil, meta, fmt.Errorf("transaction json.Unmarshal(%+v) error: %s", transaction, err)
 	}
+	meta.MDTime = transaction.Time
 
 	if md.Type != datatype.TypeTransaction {
 		return md, nil, meta, fmt.Errorf("data.type != datatype.TypeTransaction")
@@ -258,20 +263,24 @@ func (c *Consumer) Handle() {
 			}
 		}()
 	}
-	if c.MDCallback != nil {
+	if c.MDCallback != nil || c.MDTiMgr != nil {
 		c.mdChannel = make(chan *kafkago.Message, c.ChanSize)
 		go func() {
 			for {
 				select {
 				case m := <-c.mdChannel:
+					md, meta, err := c.ParseMD(m)
+					if err != nil {
+						fmt.Printf("c.ParseMD error: %s\n", err)
+						break
+					}
 					if c.MDCallback != nil {
-						md, meta, err := c.ParseMD(m)
-						if err != nil {
-							fmt.Printf("c.ParseMD error: %s\n", err)
-							break
-						}
 						c.MDCallback(md, meta)
 					}
+					if c.MDTiMgr != nil {
+						c.MDTiMgr.Update(timescale.IntTime2Time(meta.MDTime))
+					}
+
 				case <-c.stopChan:
 					return
 				}
