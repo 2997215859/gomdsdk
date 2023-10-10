@@ -17,7 +17,7 @@ const (
 
 const (
 	TransactionFuncCancel = "C" // 撤单
-	TransactionFuncTrans  = "F" // 成交
+	TransactionFuncTrans  = "0" // 成交
 )
 
 const (
