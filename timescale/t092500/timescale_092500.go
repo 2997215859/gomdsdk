@@ -254,9 +254,9 @@ var Minute1 = []string{
 	"15:00:00",
 }
 
-var scale = timescale.NewTimeScale("09:25:00", "15:00:00", 60)
+var Scale = timescale.NewTimeScale("09:25:00", "15:00:00", 60)
 
-var MinuteSize = scale.MinuteSize
+var MinuteSize = Scale.MinuteSize
 
 // 08:00:00 => 0
 // 09:25:xx => 1
@@ -276,7 +276,7 @@ var MinuteSize = scale.MinuteSize
 // 13:00:xx => 126
 
 func GetTi(timestr string) int {
-	return scale.GetTi(timestr)
+	return Scale.GetTi(timestr)
 }
 
 // 0 => ""
@@ -290,5 +290,5 @@ func GetTi(timestr string) int {
 // 8 => 09:32:00
 // 125 => 11:29:00
 func Ti2Time(ti int) string {
-	return scale.Ti2Time(ti)
+	return Scale.Ti2Time(ti)
 }
