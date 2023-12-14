@@ -120,3 +120,21 @@ type Transaction struct {
 	Channel      int     `json:"channel"`       // channel id
 	BizIndex     int64   `json:"biz_index"`     // 业务编号
 }
+
+type Index struct {
+	StockID    string `json:"stock_id"`    // wind代码
+	SZCode     string `json:"sz_code"`     // 原始代码
+	ActionDay  int    `json:"action_day"`  // 自然日(YYMMDD)
+	TradingDay int    `json:"trading_day"` // 交易日
+
+	Time int `json:"time"` // 时间(HHMMSSmmm)
+
+	PrevClose float64 `json:"prevclose"` // 前盘指数
+	Open      float64 `json:"open"`      // 今开盘指数
+	High      float64 `json:"high"`      // 最高指数
+	Low       float64 `json:"low"`       // 最低指数
+	Match     float64 `json:"match"`     // 最新指数
+
+	Volume   int64 `json:"volume"`   // 成交总量
+	Turnover int64 `json:"turnover"` // 成交总金额
+}
