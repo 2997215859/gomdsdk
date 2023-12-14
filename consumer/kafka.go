@@ -158,6 +158,29 @@ func (c *Consumer) ParseTransaction(m *kafkago.Message) (*datatype.MD, *datatype
 	return md, transaction, meta, nil
 }
 
+func (c *Consumer) ParseIndex(m *kafkago.Message) (*datatype.MD, *datatype.Index, *datatype.Meta, error) {
+	meta := &datatype.Meta{
+		Key:    string(m.Key),
+		Offset: m.Offset,
+	}
+
+	index := &datatype.Index{}
+	md := &datatype.MD{
+		Type: datatype.TypeUnknown,
+		Data: index,
+	}
+	if err := json.Unmarshal(m.Value, &md); err != nil {
+		return md, nil, meta, fmt.Errorf("snapshot json.Unmarshal(%+v) error: %s", index, err)
+	}
+	meta.MDTime = index.Time
+
+	if md.Type != datatype.TypeIndex {
+		return md, nil, meta, fmt.Errorf("data.type != datatype.TypeIndex")
+	}
+
+	return md, index, meta, nil
+}
+
 func (c *Consumer) ParseMD(m *kafkago.Message) (*datatype.MD, *datatype.Meta, error) {
 	key := string(m.Key)
 	var md *datatype.MD
@@ -171,6 +194,8 @@ func (c *Consumer) ParseMD(m *kafkago.Message) (*datatype.MD, *datatype.Meta, er
 		md, _, meta, err = c.ParseOrder(m)
 	case datatype.KeyTransaction:
 		md, _, meta, err = c.ParseTransaction(m)
+	case datatype.KeyIndex:
+		md, _, meta, err = c.ParseIndex(m)
 	default:
 		return nil, nil, fmt.Errorf("offset(%d) message.Key is unknown", m.Offset)
 	}
