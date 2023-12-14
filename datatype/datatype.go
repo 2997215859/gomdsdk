@@ -30,6 +30,7 @@ const (
 	KeySnapshot    = "snapshot"
 	KeyOrder       = "order"
 	KeyTransaction = "transaction"
+	KeyIndex       = "index"
 	KeyMD          = "md"
 )
 
@@ -38,6 +39,7 @@ const (
 	TypeSnapshot    = 1
 	TypeOrder       = 2
 	TypeTransaction = 3
+	TypeIndex       = 4
 )
 
 type MD struct {

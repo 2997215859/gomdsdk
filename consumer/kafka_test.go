@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/2997215859/gomdsdk/datatype"
-	"github.com/2997215859/gomdsdk/timgr"
 )
 
 var snapshotCnt = 0
@@ -55,16 +54,29 @@ func Callback(md *datatype.MD, meta *datatype.Meta) {
 	}
 }
 
+func TransactionCB(d *datatype.Transaction, meta *datatype.Meta) {
+	if d.StockID == "000005.SZ" {
+		b, err := json.Marshal(d)
+		if err != nil {
+			fmt.Printf("error: %s\n", err)
+			return
+		}
+		fmt.Printf("transaction: %s\n", string(b))
+	}
+}
+
 func TestKafka(t *testing.T) {
-	tiMgr := timgr.NewTiMgr(timgr.WithTiSeqCallback(TiCallback))
+	// var Timescale *timescale.TimeScale = timescale.NewTimeScale("09:30:00", "15:01:00", 60)
+	// tiMgr := timgr.NewTiMgr(timgr.WithTiSeqCallback(TiCallback), timgr.WithTimescale(*Timescale))
 
 	consumer := NewConsumer(
-		"md",
-		[]string{"183.134.59.154:9092"},
+		"transaction",
+		[]string{"192.168.1.14:19092"},
 		WithOffset(0),
-		WithMDCallback(Callback),
-		WithSnapshotTiMgr(tiMgr),
-		WithAuth("md_consumer", "Dev123456"),
+		// WithMDCallback(Callback),
+		// WithSnapshotTiMgr(tiMgr),
+		WithTransactionCallback(TransactionCB),
+		WithAuth("md_consumer", "md_c_TT4sHThu"),
 	)
 
 	if err := consumer.Run(); err != nil {
