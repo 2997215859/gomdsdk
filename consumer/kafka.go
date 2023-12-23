@@ -19,6 +19,7 @@ const DefaultChanSize = 10000000
 type SnapshotCallback func(d *datatype.Snapshot, meta *datatype.Meta)
 type OrderCallback func(d *datatype.Order, meta *datatype.Meta)
 type TransactionCallback func(d *datatype.Transaction, meta *datatype.Meta)
+type IndexCallback func(d *datatype.Index, meta *datatype.Meta)
 type MDCallback func(d *datatype.MD, meta *datatype.Meta)
 
 type Consumer struct {
@@ -33,12 +34,14 @@ type Consumer struct {
 	SnapshotCallback    SnapshotCallback
 	OrderCallback       OrderCallback
 	TransactionCallback TransactionCallback
+	IndexCallback       IndexCallback
 	MDCallback          MDCallback
 
 	mdChannel       chan *kafkago.Message
 	snapshotChan    chan *kafkago.Message
 	orderChan       chan *kafkago.Message
 	transactionChan chan *kafkago.Message
+	indexChan       chan *kafkago.Message
 
 	ChanSize int64
 	stopChan chan struct{}
@@ -338,6 +341,10 @@ func (c *Consumer) ReadMessage(ctx context.Context) error {
 	case datatype.KeyTransaction:
 		if c.TransactionCallback != nil || c.transactionChan != nil {
 			c.transactionChan <- &m
+		}
+	case datatype.KeyIndex:
+		if c.IndexCallback != nil || c.indexChan != nil {
+			c.indexChan <- &m
 		}
 	default:
 		return fmt.Errorf("offset(%d) unkown key(%s)", m.Offset, key)
